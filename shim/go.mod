@@ -1,4 +1,4 @@
-module github.com/sapadue/go-shims/shim
+module github.com/sapaude/go-shims/shim
 
 go 1.24.1
 
