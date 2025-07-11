@@ -1,3 +1,3 @@
-module github.com/sapadue/go-shim/x/log
+module github.com/sapaude/go-shims/x/log
 
 go 1.24.1
