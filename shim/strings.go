@@ -18,11 +18,6 @@ func Boom(remark string) {
     log.Fatalf("[Boom] - [%s]  Met a Boom!!", remark)
 }
 
-// JsonString 转成JSON格式输出
-func JsonString(v any) string {
-    return ToJsonString(v, false)
-}
-
 // ToJsonString 将变量转成Json类型，主要for debug
 func ToJsonString(v interface{}, pretty bool) string {
     if v == nil {
@@ -58,21 +53,6 @@ func ProcessStringsSlice(strs []string, filter func(string) bool, fn func(string
     }
 
     return result
-}
-
-// TruncateString 截取字符串前N个字符，并在末尾追加“...”。
-func TruncateString(s string, n int) string {
-    if n <= 0 {
-        return ""
-    }
-
-    // 计算字符串的长度（以字符为单位）
-    runes := []rune(s)
-    if len(runes) <= n {
-        return s
-    }
-
-    return string(runes[:n]) + "..."
 }
 
 // ParseStrIDToUint 将strUID转成uin64
@@ -195,4 +175,28 @@ func HashStringToUint64(s string, n int) uint64 {
 
     // 返回哈希值，限制在指定范围内
     return hashValue & maxValue
+}
+
+// TruncateString 截取字符串前N个字符，并在末尾追加“...”。
+func TruncateString(s string, n int) string {
+    if n <= 0 {
+        return ""
+    }
+
+    // 计算字符串的长度（以字符为单位）
+    runes := []rune(s)
+    if len(runes) <= n {
+        return s
+    }
+
+    return string(runes[:n]) + "..."
+}
+
+// StringsToAnys 将 []string 转换为 []any
+func StringsToAnys(s []string) []any {
+    anySlice := make([]any, len(s))
+    for i, v := range s {
+        anySlice[i] = v
+    }
+    return anySlice
 }
