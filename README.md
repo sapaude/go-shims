@@ -31,5 +31,9 @@ go get -u github.com/sapaude/go-shims/x/log
 
 ## Infrastructure基础设施库（例如Kafka\DB\COS等）
 
-- `kafkax`: 支持快速kafka包使用
+```shell
+go get -u github.com/sapaude/go-shims/infra/kafkax
+```
+
+- `kafkax`: 支持快速kafka包使用，参考`example`包使用
 
