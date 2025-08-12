@@ -18,5 +18,9 @@ tag:
 	echo "Created tag: $${new_version}"
 
 push:
+	# 推送tag
 	@current_version=$$(cat $(VERSION_FILE)); \
-	git push origin $$current_version
+	git push origin --tags
+
+	# 推送 main 分支
+	git push origin main
