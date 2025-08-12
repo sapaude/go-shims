@@ -24,3 +24,5 @@ push:
 
 	# 推送 main 分支
 	git push origin main
+
+update: tag push
