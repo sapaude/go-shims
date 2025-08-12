@@ -1,0 +1,13 @@
+{
+  "brokers_address": [
+    "127.0.0.1:9092"
+  ],
+  "topics": [
+    "sse_msgs"
+  ],
+  "consumer_group_id": "consumer_group.sse_push",
+  "group_id_consistent": false,
+  "consumer": {
+    "offset_initial": -1
+  }
+}
