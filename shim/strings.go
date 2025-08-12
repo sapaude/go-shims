@@ -19,12 +19,17 @@ func Boom(remark string) {
 }
 
 // ToJsonString 将变量转成Json类型，主要for debug
-func ToJsonString(v interface{}, pretty bool) string {
+func ToJsonString(v interface{}, settings ...bool) string {
     if v == nil {
         return "<nil>"
     }
-    var b []byte
     var err error
+    var pretty bool
+    if len(settings) != 0 {
+        pretty = settings[0]
+    }
+
+    var b []byte
     if pretty {
         b, err = json.MarshalIndent(v, "", "  ")
     } else {
