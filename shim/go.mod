@@ -3,6 +3,7 @@ module github.com/sapaude/go-shims/shim
 go 1.24.1
 
 require (
+	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.10.0
 )

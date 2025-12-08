@@ -3,6 +3,10 @@ package shim
 import (
     "fmt"
     "net"
+    "net/http"
+    "net/url"
+
+    "github.com/pkg/errors"
 )
 
 // GetLocalIPs 获取所有非环回、非链路本地的IPv4地址
@@ -77,4 +81,27 @@ func GetLocalIP() string {
         return ""
     }
     return ips[0].String()
+}
+
+// NewDefaultHttpClientWithProxyURL 基于Proxy Address初始化一个走Proxy的http.Client实例，支持HTTP Proxy和Socks Proxy
+func NewDefaultHttpClientWithProxyURL(address string) (*http.Client, error) {
+    if address == "" {
+        return http.DefaultClient, nil
+    }
+
+    // 有配置代理
+    proxyURL, err := url.Parse(address)
+    if err != nil {
+        return nil, errors.Wrapf(err, "invalid proxy url: %s", address)
+    }
+
+    httpClient := &http.Client{
+        Transport: &http.Transport{
+            Proxy: http.ProxyURL(proxyURL),
+        },
+        CheckRedirect: nil,
+        Jar:           nil,
+        Timeout:       0,
+    }
+    return httpClient, nil
 }
