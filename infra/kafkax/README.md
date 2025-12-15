@@ -24,7 +24,7 @@ return nil
 }
 cfg, err := kafkax.ParseConsumerGroupConfig(data)
 if err != nil {
-fmt.Errorf("parse consumer_config.json fail: %s", err.Error())
+fmt.Errorf("parse consumer_config.json fail: %s", err.BizError())
 }
 
 consumerApp := kafkax.NewConsumerApp(cfg, newExampleConsumer())
