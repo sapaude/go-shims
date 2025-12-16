@@ -29,18 +29,23 @@ type Logger interface {
     SetLevel(level logrus.Level)
     SetOutput(output io.Writer)
     SetFormatter(format LogFormat)
+
+    // Close 关闭日志资源（如文件句柄）
+    Close() error
 }
 
 // LogrusLogger 是 Logger 接口的 Logrus 实现
 type LogrusLogger struct {
     *logrus.Logger
-    config Config
-    mu     sync.RWMutex // 用于保护配置修改
+    config     Config
+    mu         sync.RWMutex // 用于保护配置修改
+    fileCloser io.Closer    // 文件句柄，用于 Close 时释放资源
 }
 
 // NewLogger 创建并返回一个新的 Logger 实例
 func NewLogger(cfg Config) (Logger, error) {
     l := logrus.New()
+    var closer io.Closer // 保存文件句柄用于后续关闭
 
     // 设置日志级别
     l.SetLevel(cfg.Level)
@@ -52,22 +57,19 @@ func NewLogger(cfg Config) (Logger, error) {
             return nil, err
         }
         l.SetOutput(file)
+        closer = file // 保存文件句柄
     } else {
         l.SetOutput(cfg.Output)
     }
 
     // 设置日志格式
-    if cfg.EnableJSON || cfg.Format == FormatJSON {
-        jsonFormatter := &logrus.JSONFormatter{
-            TimestampFormat:   cfg.TimestampFormat,
-            DisableTimestamp:  false,
-            DisableHTMLEscape: true,
-            FieldMap:          nil,
-            CallerPrettyfier:  nil,
-            PrettyPrint:       cfg.JSONPretty, // JSON格式美化输出
-        }
-        l.SetFormatter(jsonFormatter)
-
+    if cfg.Format == FormatJSON {
+        // 使用自定义的 OrderedJSONFormatter 以支持字段排序
+        l.SetFormatter(&OrderedJSONFormatter{
+            TimestampFormat: cfg.TimestampFormat,
+            PrettyPrint:     cfg.JSONPretty,
+            FieldOrder:      cfg.FieldOrder,
+        })
     } else {
         l.SetFormatter(&logrus.TextFormatter{
             FullTimestamp:   true,
@@ -77,37 +79,41 @@ func NewLogger(cfg Config) (Logger, error) {
         })
     }
 
-    // 添加 Caller Hook,
+    // 添加 Caller Hook
     if cfg.ReportCaller {
-        l.AddHook(NewCallerHook(CallerSkipFrames))
+        skipFrames := cfg.CallerSkipFrames
+        if skipFrames == 0 {
+            skipFrames = DefaultCallerSkipFrames
+        }
+        l.AddHook(NewCallerHook(skipFrames))
     }
 
     return &LogrusLogger{
-        Logger: l,
-        config: cfg,
+        Logger:     l,
+        config:     cfg,
+        fileCloser: closer,
     }, nil
 }
 
 // Debugf --- Logger 接口实现 ---
-// 为了 SkipFrames 一致，需要保持和 XXContextf 一样的调用方式
 func (l *LogrusLogger) Debugf(format string, args ...any) {
-    l.Logger.WithContext(context.Background()).Debugf(format, args...)
+    l.Logger.Debugf(format, args...)
 }
 
 func (l *LogrusLogger) Infof(format string, args ...any) {
-    l.Logger.WithContext(context.Background()).Infof(format, args...)
+    l.Logger.Infof(format, args...)
 }
 
 func (l *LogrusLogger) Warnf(format string, args ...any) {
-    l.Logger.WithContext(context.Background()).Warnf(format, args...)
+    l.Logger.Warnf(format, args...)
 }
 
 func (l *LogrusLogger) Errorf(format string, args ...any) {
-    l.Logger.WithContext(context.Background()).Errorf(format, args...)
+    l.Logger.Errorf(format, args...)
 }
 
 func (l *LogrusLogger) Fatalf(format string, args ...any) {
-    l.Logger.WithContext(context.Background()).Fatalf(format, args...)
+    l.Logger.Fatalf(format, args...)
 }
 
 // --- 带上下文（Context）方法实现 ---
@@ -193,11 +199,11 @@ func (l *LogrusLogger) SetFormatter(format LogFormat) {
 
     l.config.Format = format
     if format == FormatJSON {
-        l.Logger.SetFormatter(&logrus.JSONFormatter{
+        l.Logger.SetFormatter(&OrderedJSONFormatter{
             TimestampFormat: l.config.TimestampFormat,
             PrettyPrint:     l.config.JSONPretty,
+            FieldOrder:      l.config.FieldOrder,
         })
-        l.config.EnableJSON = true
     } else {
         l.Logger.SetFormatter(&logrus.TextFormatter{
             FullTimestamp:   true,
@@ -205,7 +211,16 @@ func (l *LogrusLogger) SetFormatter(format LogFormat) {
             ForceColors:     true,
             DisableColors:   false,
         })
-        l.config.EnableJSON = false
     }
+}
 
+// Close 关闭日志资源（如文件句柄）
+// 如果 Logger 使用文件输出，必须调用此方法以避免资源泄漏
+func (l *LogrusLogger) Close() error {
+    l.mu.Lock()
+    defer l.mu.Unlock()
+    if l.fileCloser != nil {
+        return l.fileCloser.Close()
+    }
+    return nil
 }

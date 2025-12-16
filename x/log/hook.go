@@ -13,8 +13,11 @@ const (
     CallerFileFieldKey = "file"
     CallerFuncFieldKey = "func"
 
-    EchoCallerSkipFrames = 9
-    CallerSkipFrames     = EchoCallerSkipFrames
+    // DefaultCallerSkipFrames 是默认的栈帧跳过数
+    // 这个值需要根据调用链深度调整：
+    // 调用链：用户代码 → log.Infof → GetGlobalLogger → LogrusLogger.Infof → logrus.Infof → logrus.Entry.logf → hook.Fire → runtime.Caller
+    // 需要跳过：hook.Fire(0) → logrus.Entry.logf(1) → logrus.log(2) → logrus.Infof(3) → LogrusLogger.Infof(4) → (可能的包装层) → 到达用户代码
+    DefaultCallerSkipFrames = 9
 )
 
 // CallerHook 是一个 Logrus Hook，用于添加调用者信息（文件、行号、函数名）
@@ -25,7 +28,11 @@ type CallerHook struct {
 }
 
 // NewCallerHook 创建一个新的 CallerHook 实例
+// skipFrames: 栈帧跳过数，如果 <= 0 则使用 DefaultCallerSkipFrames
 func NewCallerHook(skipFrames int) *CallerHook {
+    if skipFrames <= 0 {
+        skipFrames = DefaultCallerSkipFrames
+    }
     return &CallerHook{
         SkipFrames: skipFrames,
     }

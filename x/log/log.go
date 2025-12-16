@@ -2,6 +2,7 @@ package log
 
 import (
     "context"
+    "fmt"
     "sync"
 
     "github.com/sirupsen/logrus"
@@ -14,7 +15,9 @@ var (
 
 // InitGlobalLogger 初始化全局 Logger 实例。
 // 只能被调用一次，后续调用将被忽略。
-func InitGlobalLogger(cfg Config) {
+// 返回 error 表示初始化是否成功，如果失败会回退到基础 logrus。
+func InitGlobalLogger(cfg Config) error {
+    var initErr error
     globalLoggerOnce.Do(func() {
         l, err := NewLogger(cfg)
         if err != nil {
@@ -23,10 +26,12 @@ func InitGlobalLogger(cfg Config) {
             logrus.SetLevel(logrus.ErrorLevel)
             logrus.Errorf("Failed to initialize custom logger: %v. Falling back to basic logrus.", err)
             globalLogger = &LogrusLogger{Logger: logrus.StandardLogger(), config: cfg} // 使用标准 Logrus 作为回退
+            initErr = fmt.Errorf("logger init failed (using fallback): %w", err)
             return
         }
         globalLogger = l
     })
+    return initErr
 }
 
 // GetGlobalLogger 获取全局 Logger 实例。
@@ -87,4 +92,18 @@ func ErrorContextf(ctx context.Context, format string, args ...any) {
 
 func FatalContextf(ctx context.Context, format string, args ...any) {
     GetGlobalLogger().FatalContextf(ctx, format, args...)
+}
+
+// IsGlobalLoggerInitialized 检查全局 Logger 是否已初始化
+func IsGlobalLoggerInitialized() bool {
+    return globalLogger != nil
+}
+
+// CloseGlobalLogger 关闭全局 Logger（用于优雅退出）
+// 如果使用文件输出，必须调用此方法以避免资源泄漏
+func CloseGlobalLogger() error {
+    if globalLogger != nil {
+        return globalLogger.Close()
+    }
+    return nil
 }

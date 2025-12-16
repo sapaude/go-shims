@@ -42,6 +42,7 @@ type MetaData map[string]interface{}
 
 // WithCustomField 将单个自定义字段添加到 Context 中。
 // 如果 Context 中已有 CustomFieldsKey，则会更新或添加字段。
+// 注意：如果需要添加多个字段，推荐使用 WithFields 批量操作以提高性能。
 func WithCustomField(ctx context.Context, key string, value any) context.Context {
     fields, ok := ctx.Value(CustomFieldsKey).(MetaData)
     if !ok || fields == nil {
@@ -56,6 +57,36 @@ func WithCustomField(ctx context.Context, key string, value any) context.Context
     }
     fields[key] = value
     return context.WithValue(ctx, CustomFieldsKey, fields)
+}
+
+// WithFields 批量添加多个自定义字段到 Context 中（性能优化）
+// 这个方法比多次调用 WithCustomField 更高效，因为只需要复制一次 map
+func WithFields(ctx context.Context, fields map[string]any) context.Context {
+    if len(fields) == 0 {
+        return ctx
+    }
+
+    existing, _ := ctx.Value(CustomFieldsKey).(MetaData)
+    newFields := make(MetaData, len(existing)+len(fields))
+
+    // 复制现有字段
+    for k, v := range existing {
+        newFields[k] = v
+    }
+    // 添加新字段
+    for k, v := range fields {
+        newFields[k] = v
+    }
+
+    return context.WithValue(ctx, CustomFieldsKey, newFields)
+}
+
+// WithTracing 便捷方法：同时添加 TraceID 和 SpanID
+// 这是分布式追踪中常用的组合操作
+func WithTracing(ctx context.Context, traceID, spanID string) context.Context {
+    ctx = WithTraceID(ctx, traceID)
+    ctx = WithSpanID(ctx, spanID)
+    return ctx
 }
 
 // GetRequestID 从 Context 中获取请求 ID
