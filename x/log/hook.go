@@ -17,7 +17,7 @@ const (
     // 这个值需要根据调用链深度调整：
     // 调用链：用户代码 → log.Infof → GetGlobalLogger → LogrusLogger.Infof → logrus.Infof → logrus.Entry.logf → hook.Fire → runtime.Caller
     // 需要跳过：hook.Fire(0) → logrus.Entry.logf(1) → logrus.log(2) → logrus.Infof(3) → LogrusLogger.Infof(4) → (可能的包装层) → 到达用户代码
-    DefaultCallerSkipFrames = 9
+    DefaultCallerSkipFrames = 10
 )
 
 // CallerHook 是一个 Logrus Hook，用于添加调用者信息（文件、行号、函数名）
