@@ -53,7 +53,6 @@ fi
 echo "Version: $CURRENT_VERSION -> $NEW_VERSION"
 
 # 执行更新
-go mod tidy
 echo "$NEW_VERSION" > "$VERSION_FILE"
 git add .
 git commit -m "chore: bump version to $NEW_VERSION [x/log]"
