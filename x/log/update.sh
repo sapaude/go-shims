@@ -54,15 +54,16 @@ fi
 echo "Version: $CURRENT_VERSION -> $NEW_VERSION"
 
 # 执行更新
+NEW_TAG=$MULTI_MODULE/$NEW_VERSION
 echo "$NEW_VERSION" > "$VERSION_FILE"
 git add .
 git add $VERSION_FILE
-git commit -m "chore: bump version to $NEW_VERSION [$MULTI_MODULE]"
-git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
+git commit -m "chore: bump version to $NEW_TAG"
+git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
 
 # 推送
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 git push origin "$BRANCH"
-git push origin "$MULTI_MODULE/$NEW_VERSION"
+git push origin "$NEW_TAG"
 
-echo "✓ Updated [$MULTI_MODULE] to $NEW_VERSION"
+echo "✓ Updated to $NEW_TAG"
