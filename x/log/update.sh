@@ -4,7 +4,7 @@ set -e
 
 # 获取仓库根目录
 REPO_ROOT=$(git rev-parse --show-toplevel)
-VERSION_FILE="$REPO_ROOT/x/log/version"
+VERSION_FILE="$REPO_ROOT/version"
 
 # 读取当前版本
 CURRENT_VERSION=$(cat "$VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo "v1.0.0")
