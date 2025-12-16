@@ -5,6 +5,7 @@ set -e
 # 获取仓库根目录
 REPO_ROOT=$(git rev-parse --show-toplevel)
 VERSION_FILE="$REPO_ROOT/version"
+MULTI_MODULE="x/log"
 
 # 读取当前版本
 CURRENT_VERSION=$(cat "$VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo "v1.0.0")
@@ -55,12 +56,13 @@ echo "Version: $CURRENT_VERSION -> $NEW_VERSION"
 # 执行更新
 echo "$NEW_VERSION" > "$VERSION_FILE"
 git add .
-git commit -m "chore: bump version to $NEW_VERSION [x/log]"
+git add $VERSION_FILE
+git commit -m "chore: bump version to $NEW_VERSION [$MULTI_MODULE]"
 git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
 
 # 推送
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 git push origin "$BRANCH"
-git push origin "$NEW_VERSION"
+git push origin "$MULTI_MODULE/$NEW_VERSION"
 
-echo "✓ Updated to $NEW_VERSION"
+echo "✓ Updated [$MULTI_MODULE] to $NEW_VERSION"
