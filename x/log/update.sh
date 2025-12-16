@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set +x
 
 # 获取仓库根目录
 REPO_ROOT=$(git rev-parse --show-toplevel)
