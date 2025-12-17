@@ -38,7 +38,7 @@ func DefaultConfig() Config {
         JSONPretty:       false,
         ReportCaller:     true, // 默认开启调用者信息
         TimestampFormat:  "2006/01/02 15:04:05.000",
-        CallerSkipFrames: 0,                  // 0 表示使用默认值
+        CallerSkipFrames: 9,                   // 0 表示使用默认值
         FieldOrder:       DefaultFieldOrder(), // 使用默认字段顺序
     }
 }

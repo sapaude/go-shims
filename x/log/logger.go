@@ -97,23 +97,23 @@ func NewLogger(cfg Config) (Logger, error) {
 
 // Debugf --- Logger 接口实现 ---
 func (l *LogrusLogger) Debugf(format string, args ...any) {
-    l.Logger.Debugf(format, args...)
+    l.Logger.Logf(logrus.DebugLevel, format, args...)
 }
 
 func (l *LogrusLogger) Infof(format string, args ...any) {
-    l.Logger.Infof(format, args...)
+    l.Logger.Logf(logrus.InfoLevel, format, args...)
 }
 
 func (l *LogrusLogger) Warnf(format string, args ...any) {
-    l.Logger.Warnf(format, args...)
+    l.Logger.Logf(logrus.WarnLevel, format, args...)
 }
 
 func (l *LogrusLogger) Errorf(format string, args ...any) {
-    l.Logger.Errorf(format, args...)
+    l.Logger.Logf(logrus.ErrorLevel, format, args...)
 }
 
 func (l *LogrusLogger) Fatalf(format string, args ...any) {
-    l.Logger.Fatalf(format, args...)
+    l.Logger.Logf(logrus.FatalLevel, format, args...)
 }
 
 // --- 带上下文（Context）方法实现 ---
